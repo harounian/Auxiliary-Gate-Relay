@@ -6,4 +6,4 @@ Device used to trigger relay when external signal is high. Dip switches used to 
 -   Status LED
 -   24V Operating Voltage
     
-More information: [harounian.github.io/aux-relay.html)](https://harounian.github.io/aux-relay.html)
+More information: [harounian.github.io/aux-relay.html](https://harounian.github.io/aux-relay.html)
