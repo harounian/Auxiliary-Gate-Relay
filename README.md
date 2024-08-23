@@ -1,6 +1,6 @@
 # Auxiliary-Gate-Relay
 
-Device used to trigger relay when external signal is high. Dip switches used to configure relay on-time. Firmware coded in C++<
+Device used to trigger relay when external signal is high. Dip switches used to configure relay on-time. Firmware coded in C++
 
 -   MCU: Arduino Nano
 -   Status LED
