@@ -8,122 +8,73 @@ int status_LED = 12;
 int gate_movement = 6;
 
 int wait = 0;
-                      
+
 void setup() {
-Serial.begin(9600);
-Serial.println("Start");
-pinMode(dip_1, INPUT_PULLUP);
-pinMode(dip_2, INPUT_PULLUP);
-pinMode(dip_3, INPUT_PULLUP);
-pinMode(dip_4, INPUT_PULLUP);
+    Serial.begin(9600);
+    Serial.println("Start");
 
-pinMode(gate_movement, INPUT);
-pinMode(relay, OUTPUT);
-pinMode(status_LED, OUTPUT);
+    pinMode(dip_1, INPUT_PULLUP);
+    pinMode(dip_2, INPUT_PULLUP);
+    pinMode(dip_3, INPUT_PULLUP);
+    pinMode(dip_4, INPUT_PULLUP);
 
-//read dip switch values
-bool dip_1_Value = !digitalRead(dip_1);
-bool dip_2_Value = !digitalRead(dip_2);
-bool dip_3_Value = !digitalRead(dip_3);
-bool dip_4_Value = !digitalRead(dip_4);
+    pinMode(gate_movement, INPUT);
+    pinMode(relay, OUTPUT);
+    pinMode(status_LED, OUTPUT);
 
-int mode = (dip_1_Value << 3) | (dip_2_Value << 2) | (dip_3_Value << 1) | dip_4_Value; //concatenate binary values to base 10
+    // Read DIP switch values and determine mode
+    int mode = readDIP();
+    wait = mode * 2000; // Sets wait time based on mode (0-15)
 
-switch(mode) {
-  case 0:
-    wait = 0;
-    break;
+    Serial.print("Delay set to: ");
+    Serial.println(wait);
 
-   case 1:
-    wait = 2000;
-    break;
-
-   case 2:
-    wait = 4000;
-    break;
-
-   case 3:
-    wait = 6000;
-    break;
-
-   case 4:
-    wait = 8000;
-    break;
-
-   case 5:
-    wait = 10000;
-    break;
-    
-   case 6:
-    wait = 12000;
-    break;
-
-   case 7:
-    wait = 14000;
-    break;
-
-   case 8:
-    wait = 16000;
-    break;
-
-   case 9:
-    wait = 18000;
-    break;
-
-   case 10:
-    wait = 20000;
-    break;
-
-   case 11:
-    wait = 22000;
-    break;
-
-   case 12:
-    wait = 24000;
-    break;
-
-   case 13:
-    wait = 26000;
-    break;
-
-   case 14:
-    wait = 28000;
-    break;
-
-   case 15:
-    wait = 30000;
-    break;
-  }
-
-digitalWrite(status_LED, HIGH); //blink LED for 2 seconds
-delay(2000);
-digitalWrite(status_LED, LOW);
-    
-Serial.print("Delay set to: ");
-Serial.println(wait);
+    blinkLED(2000); // Blink LED for 2 seconds at startup
 }
 
 void loop() {
-  if (digitalRead(gate_movement) == HIGH) { //trigger relay sequence when gate starts to move
-    digitalWrite(status_LED, HIGH); //blink LED when gate is moving
-    delay(150);
-    digitalWrite(status_LED, LOW);   
-    delay(150); 
-    Serial.println("Gate Moving...");
+    static unsigned long relayTimer = 0; 
+    static bool gateMoving = false;
 
-    delay(15000);//wait for open
-    
-    //on sequence
-    Serial.println("Relay On");
-    digitalWrite(relay, HIGH);
+    if (digitalRead(gate_movement) == HIGH && !gateMoving) {
+        gateMoving = true;
+        Serial.println("Gate Moving...");
+        blinkLED(300);
+
+        delay(15000); // Simulated time for gate open
+
+        // Relay ON sequence
+        Serial.println("Relay On");
+        digitalWrite(relay, HIGH);
+        digitalWrite(status_LED, HIGH);
+        relayTimer = millis(); 
+    }
+
+    // Turn off relay after wait time
+    if (gateMoving && millis() - relayTimer >= wait) {
+        Serial.println("Relay Off");
+        digitalWrite(relay, LOW);
+        digitalWrite(status_LED, LOW);
+        gateMoving = false;
+
+        delay(10000); // Simulated gate close time
+    }
+}
+
+//Read DIP switches and return base 10 num
+int readDIP() {
+    int mode = 0;
+    int dipPins[] = {dip_4, dip_3, dip_2, dip_1};
+    for (int i = 0; i < 4; i++) {
+        mode |= (!digitalRead(dipPins[i])) << i;
+    }
+    return mode;
+}
+
+//Blink LED for a specified duration
+void blinkLED(int duration) {
     digitalWrite(status_LED, HIGH);
-    Serial.print("Waiting: ");
-    Serial.println(wait);
-    delay(wait);     
-    digitalWrite(relay, LOW);
+    delay(duration / 2);
     digitalWrite(status_LED, LOW);
-    Serial.println("Relay Off");
-    
-    delay(10000);//wait for close    
-  } 
+    delay(duration / 2);
 }
